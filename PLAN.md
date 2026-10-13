@@ -85,7 +85,7 @@ Notes from M1:
 - The user runs **Ice** (menu bar manager), which hides new menu bar icons. Onboarding (M13) should tell users to make MacLock always visible.
 - Signed "to run locally" (ad-hoc). M7 needs a real Apple Development certificate (add your Apple ID in Xcode → Settings → Accounts).
 
-### M2 — Session model and timer (app-only, soft for now)
+### M2 — Session model and timer (app-only, soft for now) ✅ DONE
 - `Shared/Session.swift`: `Session { id, start, end, source(manual|schedule) }`.
 - `SessionStore` (`@Observable`, MainActor): start(duration), remaining time, a `isActive` flag.
 - Menu bar popover: presets (25 / 50 / 90 min), a custom duration picker and a Start button. While a session runs, the menu bar shows `🔒 23:41` and a progress view, and there's no Stop button (except the DEBUG escape).

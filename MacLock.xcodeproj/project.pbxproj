@@ -9,17 +9,20 @@
 /* Begin PBXFileReference section */
 		AA0000000000000000000001 /* MacLock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000002 /* MacLockDaemon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MacLockDaemon; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000003 /* MacLockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacLockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		AA0000000000000000000010 /* MacLock */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MacLock; sourceTree = "<group>"; };
 		AA0000000000000000000011 /* MacLockDaemon */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MacLockDaemon; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Shared; sourceTree = "<group>"; };
+		AA0000000000000000000013 /* MacLockTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = MacLockTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		AA0000000000000000000020 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		AA0000000000000000000021 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AA0000000000000000000022 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -29,6 +32,7 @@
 				AA0000000000000000000010 /* MacLock */,
 				AA0000000000000000000011 /* MacLockDaemon */,
 				AA0000000000000000000012 /* Shared */,
+				AA0000000000000000000013 /* MacLockTests */,
 				AA0000000000000000000031 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -38,6 +42,7 @@
 			children = (
 				AA0000000000000000000001 /* MacLock.app */,
 				AA0000000000000000000002 /* MacLockDaemon */,
+				AA0000000000000000000003 /* MacLockTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,6 +87,24 @@
 			productReference = AA0000000000000000000002;
 			productType = "com.apple.product-type.tool";
 		};
+		AA0000000000000000000042 /* MacLockTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0000000000000000000063;
+			buildPhases = (
+				AA0000000000000000000053 /* Sources */,
+				AA0000000000000000000022 /* Frameworks */,
+			);
+			buildRules = ();
+			dependencies = ();
+			fileSystemSynchronizedGroups = (
+				AA0000000000000000000013 /* MacLockTests */,
+				AA0000000000000000000012 /* Shared */,
+			);
+			name = MacLockTests;
+			productName = MacLockTests;
+			productReference = AA0000000000000000000003;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -105,6 +128,7 @@
 			targets = (
 				AA0000000000000000000040 /* MacLock */,
 				AA0000000000000000000041 /* MacLockDaemon */,
+				AA0000000000000000000042 /* MacLockTests */,
 			);
 		};
 /* End PBXProject section */
@@ -116,6 +140,7 @@
 /* Begin PBXSourcesBuildPhase section */
 		AA0000000000000000000050 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		AA0000000000000000000051 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AA0000000000000000000053 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -213,12 +238,31 @@
 			};
 			name = Release;
 		};
+		AA0000000000000000000086 /* MacLockTests Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.maclock.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000087 /* MacLockTests Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.maclock.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		AA0000000000000000000060 = {isa = XCConfigurationList; buildConfigurations = (AA0000000000000000000082, AA0000000000000000000083); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		AA0000000000000000000061 = {isa = XCConfigurationList; buildConfigurations = (AA0000000000000000000084, AA0000000000000000000085); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		AA0000000000000000000062 = {isa = XCConfigurationList; buildConfigurations = (AA0000000000000000000080, AA0000000000000000000081); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		AA0000000000000000000063 = {isa = XCConfigurationList; buildConfigurations = (AA0000000000000000000086, AA0000000000000000000087); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 	};
 	rootObject = AA0000000000000000000070 /* Project object */;

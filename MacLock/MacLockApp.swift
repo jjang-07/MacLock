@@ -2,9 +2,14 @@ import SwiftUI
 
 @main
 struct MacLockApp: App {
+    @State private var store = SessionStore()
+
     var body: some Scene {
-        MenuBarExtra("MacLock", systemImage: "lock") {
+        MenuBarExtra {
             MenuContent()
+                .environment(store)
+        } label: {
+            MenuBarLabel(store: store)
         }
         .menuBarExtraStyle(.window)
 
@@ -19,4 +24,19 @@ struct MacLockApp: App {
 
 enum WindowID {
     static let settings = "settings"
+}
+
+/// Lock icon when idle; filled lock plus countdown during a session.
+private struct MenuBarLabel: View {
+    let store: SessionStore
+
+    var body: some View {
+        if store.isActive {
+            Image(systemName: "lock.fill")
+            Text(Countdown.format(store.remaining))
+                .monospacedDigit()
+        } else {
+            Image(systemName: "lock.open")
+        }
+    }
 }
