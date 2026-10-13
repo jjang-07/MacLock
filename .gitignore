@@ -1,0 +1,6 @@
+build/
+.DS_Store
+xcuserdata/
+Spikes/*_spike
+Spikes/nc_logger
+Spikes/*.txt
