@@ -2,14 +2,14 @@ import SwiftUI
 
 @main
 struct MacLockApp: App {
-    @State private var store = SessionStore()
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
     var body: some Scene {
         MenuBarExtra {
             MenuContent()
-                .environment(store)
+                .environment(appDelegate.store)
         } label: {
-            MenuBarLabel(store: store)
+            MenuBarLabel(store: appDelegate.store)
         }
         .menuBarExtraStyle(.window)
 
@@ -19,6 +19,20 @@ struct MacLockApp: App {
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(.suppressed)
+    }
+}
+
+/// Owns app-lifetime state. SwiftUI may call `App.init` more than once, so nothing with side
+/// effects (like the session store and its on-screen overlays) may be created there.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    let store = SessionStore()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        // `open MacLock.app --args -start-seconds 60` starts a session at launch, for testing.
+        let seconds = UserDefaults.standard.integer(forKey: "start-seconds")
+        if seconds > 0 { store.start(duration: .seconds(seconds)) }
+        #endif
     }
 }
 

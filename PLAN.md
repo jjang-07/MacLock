@@ -92,7 +92,7 @@ Notes from M1:
 
 **Done when:** a 1-minute session counts down in the menu bar and ends by itself.
 
-### M3 — Clock blocker + feedback toast
+### M3 — Clock blocker + feedback toast ✅ DONE
 - `ClockBlocker`: port `Spikes/overlay_spike.swift`. One invisible panel per display, fitted to the clock through `CGWindowList` (no Accessibility needed). Cache the last rect per display, **never remove panels during a session**, re-layout every 0.5s and on space/app/screen changes.
 - When the overlay is clicked, show a small toast just below it: "23 min left — stay focused." It fades after about 2 seconds.
 

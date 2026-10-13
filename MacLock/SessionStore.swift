@@ -9,6 +9,11 @@ final class SessionStore {
     private(set) var now = Date()
 
     private var ticker: Task<Void, Never>?
+    private let enforcers: [any Enforcer]
+
+    init(enforcers: [any Enforcer] = [ClockBlocker()]) {
+        self.enforcers = enforcers
+    }
 
     var isActive: Bool { session?.isActive(at: now) ?? false }
     var remaining: TimeInterval { session?.remaining(at: now) ?? 0 }
@@ -17,7 +22,9 @@ final class SessionStore {
     func start(duration: Duration) {
         guard !isActive else { return }   // can't replace or shorten a running session
         now = Date()
-        session = Session(start: now, duration: duration)
+        let session = Session(start: now, duration: duration)
+        self.session = session
+        enforcers.forEach { $0.activate(session: session) }
         startTicking()
     }
 
@@ -41,6 +48,7 @@ final class SessionStore {
     private func finish() {
         ticker?.cancel()
         ticker = nil
+        enforcers.forEach { $0.deactivate() }
         session = nil
         now = Date()
     }
