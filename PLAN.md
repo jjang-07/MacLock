@@ -111,11 +111,17 @@ Notes from M4 (what was actually built):
 - Both the shortcut blocker and the event-based watchdog need **Accessibility**. Until the app has a stable signing certificate, every rebuild invalidates the grant (`tccutil reset Accessibility com.maclock.app`, then re-grant).
 - Bug fixed: the focus toast replaced its `NSHostingView` on every show, which could crash AppKit's constraint pass. Now one hosting view with `sizingOptions = []`.
 
-### M5 — App blocker
+### M5 — App blocker ✅ DONE
 - `AppBlocker`: subscribe to `NSWorkspace.didLaunchApplicationNotification`. If the bundle ID is on the blocklist, call `terminate()`, then `forceTerminate()` after 2 seconds. At session start, sweep the apps already running.
 - For now, keep the blocklist in `UserDefaults` (it moves to the daemon in M10). Default list: Messages (`com.apple.MobileSMS`) and FaceTime.
 
 **Done when:** opening Messages during a session closes it immediately, and Messages opens normally after the session.
+
+Notes from M5:
+- Apps already running at session start get `terminate()`, then `forceTerminate()` after 2s. Apps launched during a session get `forceTerminate()` immediately: no glimpse of the window.
+- Defaults: Messages, FaceTime, Discord (`com.hnc.Discord`, not installed here). `AppBlocklist.protected` (MacLock, Finder, Dock, System Settings, Terminal, Xcode, ...) can never be blocked.
+- A toast "Messages is blocked — N min left" shows at the top right of the main screen.
+- Bug fixed: with `sizingOptions = []`, `NSHostingView.fittingSize` is 0×0, so every toast (including the clock's) was invisible after the M4 crash fix. Size is now measured with a standalone `NSHostingController.sizeThatFits`.
 
 ### M6 — Do Not Disturb
 - `FocusController`: run `/usr/bin/shortcuts run "MacLock Focus On|Off"` with `Process`, and check its exit status.

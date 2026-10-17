@@ -17,8 +17,11 @@ final class FocusToast {
         let panel = self.panel ?? makePanel()
         self.panel = panel
 
-        host.rootView = ToastView(message: message)
-        let size = host.fittingSize
+        let view = ToastView(message: message)
+        host.rootView = view
+        // With sizingOptions = [] the hosting view reports a zero fitting size, so measure the
+        // content separately (a controller that isn't in any window can't trip the layout loop).
+        let size = NSHostingController(rootView: view).sizeThatFits(in: CGSize(width: 1000, height: 200))
         // Right-aligned with the clock, just under the menu bar, kept on the anchor's screen.
         let x = max(anchor.maxX - size.width - 4, anchor.minX - size.width)
         panel.setFrame(CGRect(x: x, y: anchor.minY - size.height - 6, width: size.width, height: size.height), display: true)
