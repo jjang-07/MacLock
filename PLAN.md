@@ -98,11 +98,18 @@ Notes from M1:
 
 **Done when:** clicking the clock during a session shows the toast instead of Notification Center, on every display and in full-screen apps; after the session the clock works again.
 
-### M4 — Notification Center watchdog + swipe disable
+### M4 — Notification Center watchdog + shortcut blocker ✅ DONE
 - `NCWatchdog`: poll every 0.1s for a `"Notification Center"` window at layer 21. When one appears, post Escape **and** `killall NotificationCenter` at the same time. This is the backup for keyboard shortcuts and hot corners; the overlay is the main defense.
 - Swipe gesture: no changes needed (it doesn't open NC on this machine; the watchdog covers it anyway).
 
 **Done when:** you can't keep Notification Center open for more than a split second during a session by any method.
+
+Notes from M4 (what was actually built):
+- `ShortcutBlocker`: a `CGEventTap` swallows Globe/fn + N (keycode 45 + `.maskSecondaryFn`) so the panel never opens. Verified: 18/18 presses swallowed.
+- `NotificationCenterWatchdog`: with Accessibility, an `AXObserver` on Notification Center fires `AXWindowCreated` slightly *before* the panel is on screen, so each event starts a 1.5s burst of 30ms checks; plus a 2s safety poll that re-attaches after Notification Center restarts. Without Accessibility, it falls back to polling 10×/s (≈1.5% CPU — too much to keep as the default).
+- Closing = `SIGKILL` to `com.apple.notificationcenterui` (launchd restarts it; no permission needed). Posting Escape was dropped.
+- Both the shortcut blocker and the event-based watchdog need **Accessibility**. Until the app has a stable signing certificate, every rebuild invalidates the grant (`tccutil reset Accessibility com.maclock.app`, then re-grant).
+- Bug fixed: the focus toast replaced its `NSHostingView` on every show, which could crash AppKit's constraint pass. Now one hosting view with `sizingOptions = []`.
 
 ### M5 — App blocker
 - `AppBlocker`: subscribe to `NSWorkspace.didLaunchApplicationNotification`. If the bundle ID is on the blocklist, call `terminate()`, then `forceTerminate()` after 2 seconds. At session start, sweep the apps already running.

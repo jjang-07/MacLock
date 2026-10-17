@@ -4,14 +4,20 @@ import SwiftUI
 /// A small pill shown under the blocked clock, e.g. "23 min left — stay focused."
 final class FocusToast {
     private var panel: NSPanel?
+    /// Created once and never allowed to resize its window: a hosting view that drives its
+    /// window's size can trip AppKit's constraint-update loop check and crash the app.
+    private let host: NSHostingView<ToastView> = {
+        let host = NSHostingView(rootView: ToastView(message: ""))
+        host.sizingOptions = []
+        return host
+    }()
     private var hideTask: Task<Void, Never>?
 
     func show(_ message: String, below anchor: CGRect) {
         let panel = self.panel ?? makePanel()
         self.panel = panel
 
-        let host = NSHostingView(rootView: ToastView(message: message))
-        panel.contentView = host
+        host.rootView = ToastView(message: message)
         let size = host.fittingSize
         // Right-aligned with the clock, just under the menu bar, kept on the anchor's screen.
         let x = max(anchor.maxX - size.width - 4, anchor.minX - size.width)
@@ -47,11 +53,12 @@ final class FocusToast {
         panel.hasShadow = false
         panel.ignoresMouseEvents = true
         panel.isReleasedWhenClosed = false
+        panel.contentView = host
         return panel
     }
 }
 
-private struct ToastView: View {
+struct ToastView: View {
     let message: String
 
     var body: some View {

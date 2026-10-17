@@ -11,7 +11,7 @@ final class SessionStore {
     private var ticker: Task<Void, Never>?
     private let enforcers: [any Enforcer]
 
-    init(enforcers: [any Enforcer] = [ClockBlocker()]) {
+    init(enforcers: [any Enforcer] = [ClockBlocker(), ShortcutBlocker(), NotificationCenterWatchdog()]) {
         self.enforcers = enforcers
     }
 
