@@ -123,11 +123,16 @@ Notes from M5:
 - A toast "Messages is blocked — N min left" shows at the top right of the main screen.
 - Bug fixed: with `sizingOptions = []`, `NSHostingView.fittingSize` is 0×0, so every toast (including the clock's) was invisible after the M4 crash fix. Size is now measured with a standalone `NSHostingController.sizeThatFits`.
 
-### M6 — Do Not Disturb
+### M6 — Do Not Disturb ✅ DONE
 - `FocusController`: run `/usr/bin/shortcuts run "MacLock Focus On|Off"` with `Process`, and check its exit status.
 - First-run onboarding: detect whether the shortcuts exist (`shortcuts list`). If they don't, explain how to create them, or ship `.shortcut` files to import. (Both already exist on this Mac.) DND state can't be read back, so trust the exit code.
 
 **Done when:** DND turns on when a session starts and off when it ends.
+
+Notes from M6:
+- `FocusController` runs the Shortcuts off the main thread; DND turns on about 1s after a session starts (Shortcuts' launch time).
+- It only runs "Focus Off" if it ran "Focus On" for this session. Known gap: if DND was already on before the session, it's turned off when the session ends (DND state can't be read without Full Disk Access).
+- Missing shortcuts are logged, not fatal. Onboarding (M13) should check `shortcuts list` and offer to set them up.
 
 ### M7 — Privileged daemon + XPC (the hard lock starts here)
 - `MacLockDaemon`: an `NSXPCListener(machServiceName: "com.maclock.daemon")` with a `MacLockDaemonProtocol` in `Shared/`: `startSession(duration)`, `currentSession()`, `debugReset()` (`#if DEBUG` only).
