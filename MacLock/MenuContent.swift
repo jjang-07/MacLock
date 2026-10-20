@@ -10,7 +10,9 @@ struct MenuContent: View {
             if store.isActive {
                 ActiveSessionView()
             } else {
+                if store.helperStatus != .ready { HelperStatusView() }
                 StartSessionView()
+                    .disabled(store.helperStatus != .ready || store.isStarting)
             }
 
             Divider()
@@ -79,6 +81,37 @@ private struct StartSessionView: View {
 
     private static func label(minutes: Int) -> String {
         minutes < 60 ? "\(minutes) min" : "\(minutes / 60)h \(minutes % 60)m"
+    }
+}
+
+/// Shown until the root helper is approved; sessions can't start without it.
+private struct HelperStatusView: View {
+    @Environment(SessionStore.self) private var store
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            switch store.helperStatus {
+            case .needsApproval:
+                Label("Allow MacLock's helper to start sessions", systemImage: "exclamationmark.shield")
+                    .font(.callout.weight(.medium))
+                Text("System Settings → General → Login Items & Extensions → turn on MacLock.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Open Login Items") { store.openHelperSettings() }
+            case .unavailable(let reason):
+                Label("MacLock's helper isn't available", systemImage: "exclamationmark.triangle")
+                    .font(.callout.weight(.medium))
+                Text(reason)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Try Again") { store.checkHelper() }
+            case .ready:
+                EmptyView()
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.orange.opacity(0.12), in: .rect(cornerRadius: 8))
     }
 }
 

@@ -3,13 +3,16 @@ import SwiftUI
 @main
 struct MacLockApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+    /// The menu bar label only refreshes reliably for state SwiftUI owns, so hand it the store
+    /// through @State. `App.init` can run more than once, but `.shared` is always the same instance.
+    @State private var store = SessionStore.shared
 
     var body: some Scene {
         MenuBarExtra {
             MenuContent()
-                .environment(appDelegate.store)
+                .environment(store)
         } label: {
-            MenuBarLabel(store: appDelegate.store)
+            MenuBarLabel(store: store)
         }
         .menuBarExtraStyle(.window)
 
@@ -22,12 +25,13 @@ struct MacLockApp: App {
     }
 }
 
-/// Owns app-lifetime state. SwiftUI may call `App.init` more than once, so nothing with side
-/// effects (like the session store and its on-screen overlays) may be created there.
+/// Starts app-lifetime work. SwiftUI may call `App.init` more than once, so nothing with side
+/// effects (like connecting to the daemon or showing overlays) may happen there.
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let store = SessionStore()
+    private var store: SessionStore { .shared }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        store.connect()
         #if DEBUG
         // `open MacLock.app --args -start-seconds 60` starts a session at launch, for testing.
         let seconds = UserDefaults.standard.integer(forKey: "start-seconds")

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Which apps get closed during a session.
-enum AppBlocklist {
+nonisolated enum AppBlocklist {
     static let defaults: [String] = [
         "com.apple.MobileSMS",   // Messages
         "com.apple.FaceTime",

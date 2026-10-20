@@ -2,7 +2,7 @@ import CoreGraphics
 import Foundation
 
 /// Pure geometry for finding the menu bar clock. See Spikes/RESULTS.md for how these rules were found.
-enum ClockGeometry {
+nonisolated enum ClockGeometry {
     /// Picks the clock among menu bar item frames (CoreGraphics coords: origin top-left of the primary display).
     /// The clock is the item touching the screen's top edge whose right edge sits at the screen's right edge.
     /// - Parameters:

@@ -1,7 +1,7 @@
 import Foundation
 
 /// A single lock session. Times are wall-clock; tamper-resistant timing arrives with the daemon (M8).
-struct Session: Codable, Equatable, Sendable, Identifiable {
+nonisolated struct Session: Codable, Equatable, Sendable, Identifiable {
     enum Source: String, Codable, Sendable {
         case manual
         case schedule
@@ -32,7 +32,7 @@ struct Session: Codable, Equatable, Sendable, Identifiable {
     }
 }
 
-enum Countdown {
+nonisolated enum Countdown {
     /// "23:41" under an hour, "1:05:09" at or above. Rounds up so it never shows 0:00 while active.
     static func format(_ seconds: TimeInterval) -> String {
         let total = Int(seconds.rounded(.up))

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Recognizes an open Notification Center panel from window-list entries. See Spikes/RESULTS.md.
-enum NotificationCenterDetector {
+nonisolated enum NotificationCenterDetector {
     struct WindowInfo: Equatable, Sendable {
         let owner: String
         let layer: Int

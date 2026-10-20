@@ -134,7 +134,7 @@ Notes from M6:
 - It only runs "Focus Off" if it ran "Focus On" for this session. Known gap: if DND was already on before the session, it's turned off when the session ends (DND state can't be read without Full Disk Access).
 - Missing shortcuts are logged, not fatal. Onboarding (M13) should check `shortcuts list` and offer to set them up.
 
-### M7 — Privileged daemon + XPC (the hard lock starts here)
+### M7 — Privileged daemon + XPC (the hard lock starts here) ✅ DONE
 - `MacLockDaemon`: an `NSXPCListener(machServiceName: "com.maclock.daemon")` with a `MacLockDaemonProtocol` in `Shared/`: `startSession(duration)`, `currentSession()`, `debugReset()` (`#if DEBUG` only).
 - Check that only the real app can connect, using `listener.setConnectionCodeSigningRequirement(...)` with your team ID.
 - Register the daemon from the app with `SMAppService.daemon(plistName: "com.maclock.daemon.plist")`. You approve it once in System Settings → General → Login Items. (Keep the app in `/Applications` from now on.)
@@ -143,6 +143,14 @@ Notes from M6:
 - Write `RECOVERY.md`.
 
 **Done when:** you start a session, quit MacLock, reopen it, and the session is still running with the right time left.
+
+Notes from M7:
+- Signed with an Apple Development certificate (team `W9Z56Z2W36`). The keychain was missing Apple's **WWDR G3** intermediate, so the identity showed as invalid until it was imported.
+- The embedded daemon needs `CodeSignOnCopy` on its copy phase and `CREATE_INFOPLIST_SECTION_IN_BINARY` so it's signed as `com.maclock.daemon` by the same team. The daemon only accepts XPC clients signed as `com.maclock.app` by its own team (read from its own signature at launch).
+- `SMAppService.register()` throws "Operation not permitted" until the user approves the helper in Login Items; `sfltool dumpbtm` shows it as "disallowed" until then.
+- Verified: a session survives `kill -9` of the app; on reopen the app gets the same session back from the daemon.
+- Bug fixed: since M3 the menu bar countdown didn't update (the store wasn't SwiftUI-owned state). Now `SessionStore.shared`, handed to SwiftUI through `@State`.
+- Not done yet: the app doesn't verify the daemon's signature on its side (M13 hardening).
 
 ### M8 — Survive quit, kill and reboot
 - Add the LaunchAgent (`SMAppService.agent(plistName: "com.maclock.agent.plist")`) with `KeepAlive = true`, pointing at the app binary, so launchd relaunches the app within seconds if you quit or force-quit it.

@@ -6,10 +6,51 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA0000000000000000000090 /* MacLockDaemon in Embed Daemon */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002 /* MacLockDaemon */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AA0000000000000000000091 /* com.maclock.daemon.plist in Embed LaunchDaemon plist */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004 /* com.maclock.daemon.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA00000000000000000000A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000070 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000041;
+			remoteInfo = MacLockDaemon;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA0000000000000000000054 /* Embed Daemon */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				AA0000000000000000000090 /* MacLockDaemon in Embed Daemon */,
+			);
+			name = "Embed Daemon";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000055 /* Embed LaunchDaemon plist */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+				AA0000000000000000000091 /* com.maclock.daemon.plist in Embed LaunchDaemon plist */,
+			);
+			name = "Embed LaunchDaemon plist";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		AA0000000000000000000001 /* MacLock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000002 /* MacLockDaemon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MacLockDaemon; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000003 /* MacLockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacLockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000004 /* com.maclock.daemon.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.maclock.daemon.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +74,7 @@
 				AA0000000000000000000011 /* MacLockDaemon */,
 				AA0000000000000000000012 /* Shared */,
 				AA0000000000000000000013 /* MacLockTests */,
+				AA0000000000000000000032 /* LaunchServices */,
 				AA0000000000000000000031 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -47,6 +89,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		AA0000000000000000000032 /* LaunchServices */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000004 /* com.maclock.daemon.plist */,
+			);
+			path = LaunchServices;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -57,9 +107,13 @@
 				AA0000000000000000000050 /* Sources */,
 				AA0000000000000000000020 /* Frameworks */,
 				AA0000000000000000000052 /* Resources */,
+				AA0000000000000000000054 /* Embed Daemon */,
+				AA0000000000000000000055 /* Embed LaunchDaemon plist */,
 			);
 			buildRules = ();
-			dependencies = ();
+			dependencies = (
+				AA00000000000000000000A1 /* PBXTargetDependency */,
+			);
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000010 /* MacLock */,
 				AA0000000000000000000012 /* Shared */,
@@ -143,13 +197,22 @@
 		AA0000000000000000000053 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		AA00000000000000000000A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000041 /* MacLockDaemon */;
+			targetProxy = AA00000000000000000000A0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		AA0000000000000000000080 /* Project Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				DEVELOPMENT_TEAM = W9Z56Z2W36;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -170,7 +233,8 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				DEVELOPMENT_TEAM = W9Z56Z2W36;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -221,7 +285,9 @@
 		AA0000000000000000000084 /* MacLockDaemon Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.maclock.daemon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -231,7 +297,9 @@
 		AA0000000000000000000085 /* MacLockDaemon Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.maclock.daemon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
