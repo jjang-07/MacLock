@@ -39,6 +39,21 @@ final class SessionAuthority: Sendable {
         }
     }
 
+    /// Called about once a second. Undoes system-clock changes and clears the session once it
+    /// expires (deleting the state file). Returns the session still in effect.
+    func tick(wallElapsed: TimeInterval, monotonicElapsed: TimeInterval, now: Date = Date()) -> Session? {
+        let jump = ClockGuard.jump(wallElapsed: wallElapsed, monotonicElapsed: monotonicElapsed)
+        if jump != 0 {
+            state.withLock { session in
+                guard let s = session else { return }
+                session = s.shifted(by: jump)
+                Self.save(session)
+            }
+            log.notice("System clock moved by \(Int(jump))s; shifted the session to keep the time remaining")
+        }
+        return current(now: now)
+    }
+
     func end() {
         state.withLock { session in
             session = nil

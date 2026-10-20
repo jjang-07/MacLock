@@ -152,13 +152,21 @@ Notes from M7:
 - Bug fixed: since M3 the menu bar countdown didn't update (the store wasn't SwiftUI-owned state). Now `SessionStore.shared`, handed to SwiftUI through `@State`.
 - Not done yet: the app doesn't verify the daemon's signature on its side (M13 hardening).
 
-### M8 — Survive quit, kill and reboot
+### M8 — Survive quit, kill and reboot ✅ DONE
 - Add the LaunchAgent (`SMAppService.agent(plistName: "com.maclock.agent.plist")`) with `KeepAlive = true`, pointing at the app binary, so launchd relaunches the app within seconds if you quit or force-quit it.
 - The app's Quit menu item is hidden or disabled during sessions.
 - **Clock tampering:** the daemon tracks elapsed time with a monotonic clock (`ContinuousClock`) and saves the remaining seconds about every 10 seconds. Moving the system date forward doesn't end the session early. Decide (and write down) whether time keeps counting while the Mac is powered off; the recommendation is that it does, using wall time but rejecting jumps forward.
 - On boot the daemon reloads its state and continues the session.
 
 **Done when:** force-quitting brings the app back within about 5 seconds with all enforcers active; a reboot in the middle of a session resumes the lock after login; changing the system clock doesn't end the session.
+
+Notes from M8 (what was actually built):
+- **No LaunchAgent.** The root daemon's `Supervisor` checks once a second during a session whether `MacLock` runs for the console user (`sysctl KERN_PROC_UID`, `SCDynamicStoreCopyConsoleUser`) and relaunches it with `launchctl asuser <uid> sudo -u <user> open -g <app>`. Going through `open` means there's never a second copy. Verified: back 0.3–0.7s after `kill -9`, with overlays and countdown.
+- Running `open` as root fails silently; it has to run as the user inside their session.
+- launchd starts the daemon with a **relative** argv[0] (`Contents/MacOS/MacLockDaemon`); use `Bundle.main.executableURL` for real paths.
+- Clock changes: `ClockGuard` compares wall time with `ContinuousClock` every tick and shifts the session by any jump over 2s (unit-tested; live test skipped).
+- The daemon exits when its binary's inode changes (app reinstalled), and launchd's KeepAlive starts the new one. Before this existed, updates needed `sudo launchctl kickstart -k system/com.maclock.daemon`.
+- Not yet verified live: reboot mid-session (should work: the state file persists, the daemon is RunAtLoad, and the supervisor relaunches the app at login), and the self-update on the next install.
 
 ### M9 — Website blocking
 - `HostsBlocker` (in the daemon): at session start, add a block between `# >>> MacLock` / `# <<< MacLock` markers mapping each domain and its `www.` version to `0.0.0.0` and `::`. Remove it at session end. Then flush DNS with `dscacheutil -flushcache` and `killall -HUP mDNSResponder`.

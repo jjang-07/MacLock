@@ -89,8 +89,10 @@ final class SessionStore {
         guard newSession != session else { return }
         let wasActive = session != nil
         session = newSession
-        if !wasActive { enforcers.forEach { $0.activate(session: newSession) } }
-        startTicking()
+        // Also on changes (e.g. the daemon shifted the session after a clock change), so
+        // enforcers that show the time left stay right. Activation is idempotent.
+        enforcers.forEach { $0.activate(session: newSession) }
+        if !wasActive { startTicking() }
     }
 
     private func startTicking() {

@@ -19,6 +19,18 @@ nonisolated struct Session: Codable, Equatable, Sendable, Identifiable {
         self.source = source
     }
 
+    private init(id: UUID, start: Date, end: Date, source: Source) {
+        self.id = id
+        self.start = start
+        self.end = end
+        self.source = source
+    }
+
+    /// The same session moved in time, e.g. to undo a change to the system clock.
+    func shifted(by seconds: TimeInterval) -> Session {
+        Session(id: id, start: start.addingTimeInterval(seconds), end: end.addingTimeInterval(seconds), source: source)
+    }
+
     var totalSeconds: TimeInterval { end.timeIntervalSince(start) }
 
     func remaining(at now: Date) -> TimeInterval { max(0, end.timeIntervalSince(now)) }

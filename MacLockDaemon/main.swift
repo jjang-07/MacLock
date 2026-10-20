@@ -5,12 +5,15 @@ import os
 // or killing the app can't end it.
 
 let log = Logger(subsystem: MacLockID.daemon, category: "Main")
-let service = DaemonService(authority: SessionAuthority())
+let authority = SessionAuthority()
+let service = DaemonService(authority: authority)
+let supervisor = Supervisor(authority: authority)
 
 let listener = NSXPCListener(machServiceName: MacLockID.daemon)
 listener.setConnectionCodeSigningRequirement(DaemonService.clientRequirement())
 listener.delegate = service
 listener.resume()
+supervisor.start()
 log.info("Daemon started (uid \(getuid()))")
 
 RunLoop.main.run()
