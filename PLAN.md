@@ -168,13 +168,20 @@ Notes from M8 (what was actually built):
 - The daemon exits when its binary's inode changes (app reinstalled), and launchd's KeepAlive starts the new one. Before this existed, updates needed `sudo launchctl kickstart -k system/com.maclock.daemon`.
 - Not yet verified live: reboot mid-session (should work: the state file persists, the daemon is RunAtLoad, and the supervisor relaunches the app at login), and the self-update on the next install.
 
-### M9 — Website blocking
+### M9 — Website blocking ✅ DONE
 - `HostsBlocker` (in the daemon): at session start, add a block between `# >>> MacLock` / `# <<< MacLock` markers mapping each domain and its `www.` version to `0.0.0.0` and `::`. Remove it at session end. Then flush DNS with `dscacheutil -flushcache` and `killall -HUP mDNSResponder`.
 - On every daemon start, reconcile: if no session is active, make sure the block is gone. This prevents websites from staying blocked by accident.
 - Watch `/etc/hosts` with `DispatchSource` and put the block back if it's edited during a session.
 - Known gaps (document them): browsers using DNS-over-HTTPS, and tabs that were already open with live connections. Mitigations: tell the user to turn off "Secure DNS" in their browser, and optionally reload or quit browsers at session start. A packet-filter (`pf`) rule is a possible upgrade later.
 
 **Done when:** youtube.com doesn't load in Safari or Chrome during a session, loads afterwards, and editing hosts mid-session gets reverted.
+
+Notes from M9:
+- `HostsFile` (Shared, unit-tested) is pure text logic: it only ever touches lines between the markers, and `normalize` rejects anything that isn't a plain domain (so input can't inject extra hosts lines).
+- The daemon reconciles `/etc/hosts` every tick during a session (undoes edits within ~1s) and every 5s otherwise (cleans up after a crash). It writes atomically, keeps mode 644, flushes DNS, and saves a one-time `hosts.backup`.
+- Verified: youtube.com resolved to 0.0.0.0 and failed in the browser while apple.com loaded; after the session `/etc/hosts` was byte-identical to the original and YouTube loaded again.
+- The daemon self-update (from M8) was verified on this install.
+- Browsers show blocked sites as "no internet". Possible M13 polish: point blocked sites at a small local "Blocked by MacLock" page.
 
 ### M10 — Settings window
 - Tabs: **Blocking** (an app picker from `/Applications` plus a list of website domains), **Schedules**, **Stats**, **General** (permissions status, reinstall the helper).

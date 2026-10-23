@@ -7,6 +7,7 @@ import SystemConfiguration
 /// time, and relaunches the app for the logged-in user if it's not running during a session.
 final class Supervisor: @unchecked Sendable {   // all state is confined to `queue`
     private let authority: SessionAuthority
+    private let hosts = HostsBlocker()
     private let queue = DispatchQueue(label: "com.maclock.daemon.supervisor")
     private let log = Logger(subsystem: MacLockID.daemon, category: "Supervisor")
     private var timer: DispatchSourceTimer?
@@ -15,6 +16,7 @@ final class Supervisor: @unchecked Sendable {   // all state is confined to `que
     private var lastMonotonic = ContinuousClock.now
     private var lastLaunchAttempt = Date.distantPast
     private var tickCount = 0
+    private var hostsWasActive = false
 
     /// The app bundle this daemon is embedded in: …/MacLock.app/Contents/MacOS/MacLockDaemon.
     private let appURL: URL
@@ -49,6 +51,13 @@ final class Supervisor: @unchecked Sendable {   // all state is confined to `que
 
         let session = authority.tick(wallElapsed: wallElapsed, monotonicElapsed: monotonicElapsed, now: wall)
         if session != nil { ensureAppRunning() }
+
+        // Every tick during a session (undoes edits within a second); now and then otherwise,
+        // which also cleans up a block left behind by a crash.
+        if session != nil || tickCount % 5 == 0 || session == nil && hostsWasActive {
+            hosts.reconcile(sessionActive: session != nil)
+        }
+        hostsWasActive = session != nil
 
         tickCount += 1
         if tickCount % 5 == 0 { exitIfReplaced() }
