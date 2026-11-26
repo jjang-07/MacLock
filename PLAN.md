@@ -211,13 +211,23 @@ Notes from M10:
 - Known limit: a site added **mid-session** that's already open keeps loading in Dia (and Chromium browsers generally) until the browser restarts, because the browser keeps its own DNS cache and open connections. Sites on the list when a session starts are blocked in Dia. Settings now says so after adding a site mid-session. Possible M13 upgrade: a `pf` firewall rule for the domains' current addresses, plus killing their existing connections.
 - "Session length can only go up" is deferred to M11: sessions can't be extended yet.
 
-### M11 — Schedules
+### M11 — Schedules ✅ DONE
 - `Schedule { days: Set<Weekday>, start: time, end: time, enabled }`, stored in the daemon.
 - The daemon checks every 30 seconds and starts a session with `source = .schedule` when a schedule window opens. If a manual session is already running, the session is extended to whichever end comes later.
 - Same rule as M10: a schedule can't be disabled or deleted within 10 minutes of its start time or while it's active.
 - Optional: notify the user 5 minutes before a scheduled lock starts.
 
 **Done when:** a schedule set 2 minutes in the future starts a lock by itself, even if the app was quit.
+
+Notes from M11:
+- `Schedule` (Shared, unit-tested): weekdays + start/end minutes, may cross midnight (the window belongs to the day it starts). `isLocked` = running or starting within 10 min. Overlapping schedules cover until the latest end.
+- Schedules are stored in `BlockConfig` (old config files without them still load). `BlockConfig.applying` refuses any change to a locked schedule, session or not; adding schedules is always allowed.
+- The daemon's supervisor calls `SessionAuthority.cover(until:)` every tick during a window: starts a session, or extends the running one to the window's end. It never shortens.
+- "+15 min" in the popover → XPC `extendSession`; sessions can only get longer (`Session.extended(to:)`).
+- Debug "End session" suppresses schedules until the current window ends, or the supervisor would restart the session a second later.
+- Verified live (`Spikes/m11_retest.sh`): schedule started a session on its minute; deleting it while running was refused; the session ended with the window; deleting it afterwards was accepted; a 1-minute session extended by 60s lasted ~2 min.
+- Testing note: during a session the daemon relaunches the app within ~1s of it quitting, faster than `open --args`, so live tests pass commands through `defaults write com.maclock.app <key>` instead of launch arguments.
+- Not done: a notification 5 minutes before a scheduled session (optional; would need notification permission).
 
 ### M12 — Focus stats
 - The daemon adds each completed session to `sessions.jsonl` (start, end, source, duration).
