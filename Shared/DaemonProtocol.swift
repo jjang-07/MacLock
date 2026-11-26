@@ -6,6 +6,9 @@ import Foundation
     /// Starts a session unless one is already active. Replies with the session now in effect.
     func startSession(seconds: Int, reply: @escaping @Sendable (Data?) -> Void)
 
+    /// Adds time to the active session (it can only get longer). Replies with the session, or nil.
+    func extendSession(seconds: Int, reply: @escaping @Sendable (Data?) -> Void)
+
     /// Replies with the active session, or nil.
     func currentSession(reply: @escaping @Sendable (Data?) -> Void)
 

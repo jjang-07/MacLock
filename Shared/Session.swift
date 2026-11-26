@@ -31,6 +31,11 @@ nonisolated struct Session: Codable, Equatable, Sendable, Identifiable {
         Session(id: id, start: start.addingTimeInterval(seconds), end: end.addingTimeInterval(seconds), source: source)
     }
 
+    /// The same session ending at `newEnd`, if that's later. A session never gets shorter.
+    func extended(to newEnd: Date) -> Session {
+        newEnd > end ? Session(id: id, start: start, end: newEnd, source: source) : self
+    }
+
     var totalSeconds: TimeInterval { end.timeIntervalSince(start) }
 
     func remaining(at now: Date) -> TimeInterval { max(0, end.timeIntervalSince(now)) }

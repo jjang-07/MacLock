@@ -51,6 +51,9 @@ final class Supervisor: @unchecked Sendable {   // all state is confined to `que
         lastWall = wall
         lastMonotonic = monotonic
 
+        if let window = config.current.schedules.activeWindow(at: wall) {
+            authority.cover(until: window.end, source: .schedule, now: wall)
+        }
         let session = authority.tick(wallElapsed: wallElapsed, monotonicElapsed: monotonicElapsed, now: wall)
         if session != nil { ensureAppRunning() }
 

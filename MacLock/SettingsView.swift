@@ -4,7 +4,7 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             Tab("Blocking", systemImage: "nosign") { BlockingSettingsView() }
-            Tab("Schedules", systemImage: "calendar") { placeholder("Scheduled lock sessions") }
+            Tab("Schedules", systemImage: "calendar") { SchedulesSettingsView() }
             Tab("Stats", systemImage: "chart.bar") { placeholder("Focus time and streaks") }
             Tab("General", systemImage: "gearshape") { GeneralSettingsView() }
         }

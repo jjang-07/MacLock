@@ -131,10 +131,18 @@ private struct ActiveSessionView: View {
 
             ProgressView(value: store.progress)
 
-            if let end = store.session?.end {
-                Text("Ends at \(end.formatted(date: .omitted, time: .shortened))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            HStack {
+                if let session = store.session {
+                    Text(session.source == .schedule
+                         ? "Scheduled · ends at \(session.end.formatted(date: .omitted, time: .shortened))"
+                         : "Ends at \(session.end.formatted(date: .omitted, time: .shortened))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                // Sessions can only get longer.
+                Button("+15 min") { store.extend(by: .seconds(15 * 60)) }
+                    .controlSize(.small)
             }
 
             #if DEBUG

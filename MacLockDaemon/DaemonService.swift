@@ -55,6 +55,10 @@ final class DaemonService: NSObject, NSXPCListenerDelegate, MacLockDaemonProtoco
         reply(Self.encode(authority.start(seconds: seconds)))
     }
 
+    func extendSession(seconds: Int, reply: @escaping @Sendable (Data?) -> Void) {
+        reply(Self.encode(authority.extend(bySeconds: seconds)))
+    }
+
     func currentSession(reply: @escaping @Sendable (Data?) -> Void) {
         reply(Self.encode(authority.current()))
     }
@@ -79,7 +83,9 @@ final class DaemonService: NSObject, NSXPCListenerDelegate, MacLockDaemonProtoco
 
     func debugEndSession(reply: @escaping @Sendable (Bool) -> Void) {
         #if DEBUG
-        authority.end()
+        // Otherwise the supervisor would restart a running schedule's session a second later.
+        let window = config.current.schedules.activeWindow(at: Date())
+        authority.end(suppressingSchedulesUntil: window?.end)
         reply(true)
         #else
         reply(false)

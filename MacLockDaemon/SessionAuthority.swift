@@ -6,6 +6,9 @@ import Synchronization
 /// the session survives the app quitting and (from M8) reboots.
 final class SessionAuthority: Sendable {
     private let state = Mutex<Session?>(nil)
+    /// Debug builds: after "End session (debug only)", don't restart a schedule's session
+    /// until this time (the end of the window that was running).
+    private let schedulesSuppressedUntil = Mutex<Date>(.distantPast)
     private let log = Logger(subsystem: MacLockID.daemon, category: "Session")
 
     init() {
@@ -54,11 +57,41 @@ final class SessionAuthority: Sendable {
         return current(now: now)
     }
 
-    func end() {
+    /// Makes sure a session covers `until`: starts one if none is active, or extends the active
+    /// one if it would end sooner. Used for schedules.
+    func cover(until end: Date, source: Session.Source, now: Date = Date()) {
+        guard now >= schedulesSuppressedUntil.withLock({ $0 }) else { return }
+        state.withLock { session in
+            if let s = session, s.isActive(at: now) {
+                guard s.end < end else { return }
+                session = s.extended(to: end)
+                log.notice("Extended session to \(end, privacy: .public) for a schedule")
+            } else {
+                session = Session(start: now, duration: .seconds(Int(end.timeIntervalSince(now).rounded(.up))), source: source)
+                log.notice("Started session until \(end, privacy: .public) for a schedule")
+            }
+            Self.save(session)
+        }
+    }
+
+    /// Adds time to the active session. Returns it, or nil if there's none.
+    func extend(bySeconds seconds: Int, now: Date = Date()) -> Session? {
+        guard seconds > 0, seconds <= 12 * 3600 else { return current(now: now) }
+        return state.withLock { session in
+            guard let s = session, s.isActive(at: now) else { return nil }
+            session = s.extended(to: s.end.addingTimeInterval(TimeInterval(seconds)))
+            Self.save(session)
+            log.info("Extended session by \(seconds)s")
+            return session
+        }
+    }
+
+    func end(suppressingSchedulesUntil suppressUntil: Date? = nil) {
         state.withLock { session in
             session = nil
             Self.save(nil)
         }
+        if let suppressUntil { schedulesSuppressedUntil.withLock { $0 = suppressUntil } }
         log.info("Session ended early (debug)")
     }
 

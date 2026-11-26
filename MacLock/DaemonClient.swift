@@ -46,6 +46,10 @@ final class DaemonClient {
         await call { proxy, reply in proxy.startSession(seconds: seconds) { reply(Self.decode($0)) } } ?? nil
     }
 
+    func extendSession(seconds: Int) async -> Session? {
+        await call { proxy, reply in proxy.extendSession(seconds: seconds) { reply(Self.decode($0)) } } ?? nil
+    }
+
     func currentSession() async -> Session?? {
         await call { proxy, reply in proxy.currentSession { reply(Self.decode($0)) } }
     }

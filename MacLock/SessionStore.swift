@@ -64,6 +64,12 @@ final class SessionStore {
         }
     }
 
+    /// Adds time to the running session. Sessions can only get longer.
+    func extend(by duration: Duration) {
+        guard isActive else { return }
+        Task { apply(await daemon.extendSession(seconds: Int(duration.components.seconds))) }
+    }
+
     /// Asks the daemon to replace the blocklists. Returns an error message if it refused
     /// (e.g. removing something during a session) or couldn't be reached.
     func updateConfig(_ proposed: BlockConfig) async -> String? {
