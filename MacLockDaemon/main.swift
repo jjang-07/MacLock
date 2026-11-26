@@ -6,8 +6,9 @@ import os
 
 let log = Logger(subsystem: MacLockID.daemon, category: "Main")
 let authority = SessionAuthority()
-let service = DaemonService(authority: authority)
-let supervisor = Supervisor(authority: authority)
+let config = ConfigStore()
+let service = DaemonService(authority: authority, config: config)
+let supervisor = Supervisor(authority: authority, config: config)
 
 let listener = NSXPCListener(machServiceName: MacLockID.daemon)
 listener.setConnectionCodeSigningRequirement(DaemonService.clientRequirement())

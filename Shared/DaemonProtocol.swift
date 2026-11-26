@@ -9,6 +9,13 @@ import Foundation
     /// Replies with the active session, or nil.
     func currentSession(reply: @escaping @Sendable (Data?) -> Void)
 
+    /// Replies with the JSON-encoded `BlockConfig`.
+    func blockConfig(reply: @escaping @Sendable (Data) -> Void)
+
+    /// Replaces the blocklists. During a session only additions are accepted. Replies with the
+    /// config now in effect, plus an error message if the change was refused.
+    func setBlockConfig(_ data: Data, reply: @escaping @Sendable (Data, String?) -> Void)
+
     /// Debug builds only: ends the active session. Release daemons reply false.
     func debugEndSession(reply: @escaping @Sendable (Bool) -> Void)
 }

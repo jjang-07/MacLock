@@ -2,11 +2,7 @@ import Foundation
 
 /// Which apps get closed during a session.
 nonisolated enum AppBlocklist {
-    static let defaults: [String] = [
-        "com.apple.MobileSMS",   // Messages
-        "com.apple.FaceTime",
-        "com.hnc.Discord",
-    ]
+    static var defaults: [String] { BlockConfig.defaults.apps.map(\.bundleID) }
 
     /// Never blocked, even if added by mistake: blocking these would break the Mac or MacLock itself.
     static let protected: Set<String> = [

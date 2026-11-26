@@ -7,6 +7,7 @@ import SystemConfiguration
 /// time, and relaunches the app for the logged-in user if it's not running during a session.
 final class Supervisor: @unchecked Sendable {   // all state is confined to `queue`
     private let authority: SessionAuthority
+    private let config: ConfigStore
     private let hosts = HostsBlocker()
     private let queue = DispatchQueue(label: "com.maclock.daemon.supervisor")
     private let log = Logger(subsystem: MacLockID.daemon, category: "Supervisor")
@@ -23,8 +24,9 @@ final class Supervisor: @unchecked Sendable {   // all state is confined to `que
     private let executableURL: URL
     private let executableInode: ino_t?
 
-    init(authority: SessionAuthority) {
+    init(authority: SessionAuthority, config: ConfigStore) {
         self.authority = authority
+        self.config = config
         // Not argv[0]: launchd starts the daemon with a path relative to the app bundle.
         executableURL = (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0]))
             .resolvingSymlinksInPath()
@@ -55,7 +57,7 @@ final class Supervisor: @unchecked Sendable {   // all state is confined to `que
         // Every tick during a session (undoes edits within a second); now and then otherwise,
         // which also cleans up a block left behind by a crash.
         if session != nil || tickCount % 5 == 0 || session == nil && hostsWasActive {
-            hosts.reconcile(sessionActive: session != nil)
+            hosts.reconcile(domains: session != nil ? config.current.websites : [])
         }
         hostsWasActive = session != nil
 

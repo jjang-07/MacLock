@@ -5,10 +5,12 @@ import Security
 /// Accepts XPC connections from the MacLock app only, and serves the session authority.
 final class DaemonService: NSObject, NSXPCListenerDelegate, MacLockDaemonProtocol, @unchecked Sendable {
     private let authority: SessionAuthority
+    private let config: ConfigStore
     private let log = Logger(subsystem: MacLockID.daemon, category: "XPC")
 
-    init(authority: SessionAuthority) {
+    init(authority: SessionAuthority, config: ConfigStore) {
         self.authority = authority
+        self.config = config
     }
 
     /// Only processes signed as the MacLock app, by the same team that signed this daemon, may connect.
@@ -55,6 +57,24 @@ final class DaemonService: NSObject, NSXPCListenerDelegate, MacLockDaemonProtoco
 
     func currentSession(reply: @escaping @Sendable (Data?) -> Void) {
         reply(Self.encode(authority.current()))
+    }
+
+    func blockConfig(reply: @escaping @Sendable (Data) -> Void) {
+        reply(Self.encodeConfig(config.current))
+    }
+
+    func setBlockConfig(_ data: Data, reply: @escaping @Sendable (Data, String?) -> Void) {
+        guard let proposed = try? JSONDecoder().decode(BlockConfig.self, from: data) else {
+            return reply(Self.encodeConfig(config.current), "Couldn't read the new blocklists.")
+        }
+        switch config.update(to: proposed, sessionActive: authority.current() != nil) {
+        case .success(let next): reply(Self.encodeConfig(next), nil)
+        case .failure(let error): reply(Self.encodeConfig(config.current), error.localizedDescription)
+        }
+    }
+
+    private static func encodeConfig(_ config: BlockConfig) -> Data {
+        (try? JSONEncoder().encode(config)) ?? Data()
     }
 
     func debugEndSession(reply: @escaping @Sendable (Bool) -> Void) {

@@ -3,12 +3,13 @@ import SwiftUI
 struct SettingsView: View {
     var body: some View {
         TabView {
-            Tab("Blocking", systemImage: "nosign") { placeholder("Blocked apps and websites") }
+            Tab("Blocking", systemImage: "nosign") { BlockingSettingsView() }
             Tab("Schedules", systemImage: "calendar") { placeholder("Scheduled lock sessions") }
             Tab("Stats", systemImage: "chart.bar") { placeholder("Focus time and streaks") }
-            Tab("General", systemImage: "gearshape") { placeholder("Permissions and helper status") }
+            Tab("General", systemImage: "gearshape") { GeneralSettingsView() }
         }
-        .frame(width: 520, height: 360)
+        .frame(width: 560, height: 460)
+        .environment(SessionStore.shared)
     }
 
     private func placeholder(_ text: String) -> some View {

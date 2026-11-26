@@ -196,12 +196,20 @@ Xcode was removed from this Mac (only ~20 GB free; Xcode needs ~40 GB). The Comm
 - Install: copy the app to `/Applications`; the daemon notices its binary changed and restarts itself.
 The Xcode project still works if Xcode is reinstalled.
 
-### M10 — Settings window
+### M10 — Settings window ✅ DONE
 - Tabs: **Blocking** (an app picker from `/Applications` plus a list of website domains), **Schedules**, **Stats**, **General** (permissions status, reinstall the helper).
 - Blocklists move into the daemon's config so a non-root user can't edit them; the app reads and writes them over XPC.
 - **During a session, the lock can only get stricter:** you can add apps or sites, but you can't remove any, and session length can only go up.
 
 **Done when:** blocklists changed in Settings take effect, and removing an item during a session is refused.
+
+Notes from M10:
+- Blocklists live in the daemon (`/Library/Application Support/MacLock/config.json`, root-owned, 644) as `BlockConfig`. The app reads and writes them over XPC (`blockConfig`, `setBlockConfig`); the app keeps a copy in `SessionStore.config`, refreshed every 5s, which `AppBlocker` reads.
+- `BlockConfig.applying(_:sessionActive:)` (unit-tested) is the one rule: outside a session anything goes; during one, any change that removes an app or website is refused with a message. Input is sanitized (websites normalized and de-duplicated, protected apps dropped).
+- Settings → **Blocking**: app list with icons and an Add App… picker, website list with an inline field; remove buttons are disabled during a session. **General**: status of the helper, Accessibility and the Do Not Disturb shortcuts, with buttons to fix what's missing.
+- Verified: adding and removing outside a session; during a session, removing is disabled, an app added while open (Stickies, Chess) is closed within seconds, and a website added mid-session is in /etc/hosts within 0.2s.
+- Known limit: a site added **mid-session** that's already open keeps loading in Dia (and Chromium browsers generally) until the browser restarts, because the browser keeps its own DNS cache and open connections. Sites on the list when a session starts are blocked in Dia. Settings now says so after adding a site mid-session. Possible M13 upgrade: a `pf` firewall rule for the domains' current addresses, plus killing their existing connections.
+- "Session length can only go up" is deferred to M11: sessions can't be extended yet.
 
 ### M11 — Schedules
 - `Schedule { days: Set<Weekday>, start: time, end: time, enabled }`, stored in the daemon.

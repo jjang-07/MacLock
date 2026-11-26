@@ -14,6 +14,8 @@ final class SessionStore {
     private(set) var now = Date()
     private(set) var helperStatus: DaemonClient.Status = .unavailable("Not checked yet")
     private(set) var isStarting = false
+    /// The blocklists, as last read from the daemon (defaults until then).
+    private(set) var config: BlockConfig = .defaults
 
     private var ticker: Task<Void, Never>?
     private var syncTask: Task<Void, Never>?
@@ -62,6 +64,23 @@ final class SessionStore {
         }
     }
 
+    /// Asks the daemon to replace the blocklists. Returns an error message if it refused
+    /// (e.g. removing something during a session) or couldn't be reached.
+    func updateConfig(_ proposed: BlockConfig) async -> String? {
+        guard let (latest, refusal) = await daemon.setBlockConfig(proposed) else {
+            return "Couldn't reach MacLock's helper."
+        }
+        if let latest { applyConfig(latest) }
+        return refusal
+    }
+
+    private func applyConfig(_ latest: BlockConfig) {
+        guard latest != config else { return }
+        config = latest
+        // Newly blocked apps that are already open get closed straight away.
+        if let session, isActive { enforcers.forEach { $0.activate(session: session) } }
+    }
+
     #if DEBUG
     /// Development escape hatch. Not compiled into Release builds.
     func debugEnd() {
@@ -74,6 +93,7 @@ final class SessionStore {
     private func sync() async {
         if helperStatus != .ready { checkHelper() }
         guard helperStatus == .ready else { return }
+        if let latest = await daemon.blockConfig() { applyConfig(latest) }
         // nil = daemon unreachable: keep enforcing whatever we last knew.
         if let current = await daemon.currentSession() {
             apply(current)

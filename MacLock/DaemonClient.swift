@@ -50,6 +50,18 @@ final class DaemonClient {
         await call { proxy, reply in proxy.currentSession { reply(Self.decode($0)) } }
     }
 
+    func blockConfig() async -> BlockConfig? {
+        await call { proxy, reply in proxy.blockConfig { reply(Self.decodeConfig($0)) } } ?? nil
+    }
+
+    /// Returns the config now in effect and, if the change was refused, why.
+    func setBlockConfig(_ config: BlockConfig) async -> (BlockConfig?, String?)? {
+        guard let data = try? JSONEncoder().encode(config) else { return nil }
+        return await call { proxy, reply in
+            proxy.setBlockConfig(data) { reply((Self.decodeConfig($0), $1)) }
+        }
+    }
+
     func debugEndSession() async -> Bool {
         await call { proxy, reply in proxy.debugEndSession { reply($0) } } ?? false
     }
@@ -78,6 +90,10 @@ final class DaemonClient {
         connection.resume()
         self.connection = connection
         return connection
+    }
+
+    nonisolated private static func decodeConfig(_ data: Data) -> BlockConfig? {
+        try? JSONDecoder().decode(BlockConfig.self, from: data)
     }
 
     nonisolated private static func decode(_ data: Data?) -> Session? {

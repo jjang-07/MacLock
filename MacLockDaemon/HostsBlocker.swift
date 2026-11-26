@@ -8,15 +8,13 @@ final class HostsBlocker: @unchecked Sendable {   // used only from the supervis
     private static let backupURL = DaemonPaths.stateDirectory.appendingPathComponent("hosts.backup")
     private let log = Logger(subsystem: MacLockID.daemon, category: "Hosts")
 
-    /// Domains to block. Configurable from Settings in M10.
-    var domains: [String] = WebsiteBlocklist.defaults.compactMap(HostsFile.normalize)
-
-    func reconcile(sessionActive: Bool) {
+    /// Makes /etc/hosts block exactly `domains` (none outside a session).
+    func reconcile(domains: [String]) {
         guard let current = try? String(contentsOf: Self.hostsURL, encoding: .utf8) else {
             log.error("Couldn't read /etc/hosts")
             return
         }
-        let wanted = HostsFile.applying(domains: sessionActive ? domains : [], to: current)
+        let wanted = HostsFile.applying(domains: domains, to: current)
         guard wanted != current else { return }
 
         backUpOriginal(current)
@@ -24,7 +22,7 @@ final class HostsBlocker: @unchecked Sendable {   // used only from the supervis
             try Data(wanted.utf8).write(to: Self.hostsURL, options: .atomic)
             try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: Self.hostsURL.path)
             flushDNS()
-            log.notice("\(sessionActive ? "Applied" : "Removed", privacy: .public) website block (\(self.domains.count) sites)")
+            log.notice("Website block now covers \(domains.count) sites")
         } catch {
             log.error("Couldn't write /etc/hosts: \(error.localizedDescription, privacy: .public)")
         }

@@ -5,24 +5,25 @@ import os
 /// - Already running at session start: asked to quit (so they can save), force-quit after 2s.
 /// - Launched during the session: force-quit immediately, before a window can show.
 final class AppBlocker: Enforcer {
-    static let blocklistKey = "blockedApps"
     private static let log = Logger(subsystem: MacLockID.app, category: "AppBlocker")
 
     private var session: Session?
     private var launchObserver: NSObjectProtocol?
     private let toast = FocusToast()
 
-    /// Bundle IDs to block. Editable in Settings from M10; defaults until then.
-    private var blocklist: Set<String> {
-        Set(UserDefaults.standard.stringArray(forKey: Self.blocklistKey) ?? AppBlocklist.defaults)
-    }
+    /// Bundle IDs to block, from the daemon's config (edited in Settings).
+    private var blocklist: Set<String> { SessionStore.shared.config.appBundleIDs }
 
     isolated deinit {
         deactivate()
     }
 
+    /// Also called again when the session or the blocklist changes, so it sweeps every time.
     func activate(session: Session) {
         self.session = session
+        defer {
+            for app in NSWorkspace.shared.runningApplications { blockIfListed(app, graceful: true) }
+        }
         guard launchObserver == nil else { return }
 
         launchObserver = NSWorkspace.shared.notificationCenter.addObserver(
@@ -35,10 +36,6 @@ final class AppBlocker: Enforcer {
             }
         }
 
-        // Sweep what's already open.
-        for app in NSWorkspace.shared.runningApplications {
-            blockIfListed(app, graceful: true)
-        }
     }
 
     func deactivate() {
