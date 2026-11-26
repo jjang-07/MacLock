@@ -183,6 +183,19 @@ Notes from M9:
 - The daemon self-update (from M8) was verified on this install.
 - Browsers show blocked sites as "no internet". Possible M13 polish: point blocked sites at a small local "Blocked by MacLock" page.
 
+### Bug fix — double-click bypass ✅ FIXED
+- Cause: showing the toast twice in quick succession (a double-click on the clock) crashed the app in AppKit's constraint pass (SwiftUI `NSHostingView` inside the toast panel). The crash took the clock overlay with it for ~0.85s until the daemon relaunched the app, and the next click opened Notification Center. The M4 "fix" had only hidden this: it made the toast 0×0.
+- Fix: the toast is plain AppKit (`NSVisualEffectView` + `NSImageView` + `NSTextField`, manual frames, no constraints). The watchdog also starts a burst of checks on activation, since after a relaunch the panel may already be open with no "window created" event coming.
+- Verified with `Spikes/dblclick_monitor` (20 samples/s of overlay frames, stacking order and NC state): before, 2 crashes and NC open ~8s; after, 41 clicks with 0 crashes, 0 overlay gaps, NC never open.
+- Idea for M13: draw the clock overlay from a tiny separate process, so a crash in the main UI can never uncover the clock.
+
+### Building without Xcode
+Xcode was removed from this Mac (only ~20 GB free; Xcode needs ~40 GB). The Command Line Tools have Swift 6.3 and the macOS 26.5 SDK, which is enough:
+- `scripts/build.sh [debug|release]` → `build/cli/<config>/MacLock.app`, signed with the Apple Development identity, same identifiers and team as the Xcode project.
+- `scripts/test.sh` runs the Swift Testing suite.
+- Install: copy the app to `/Applications`; the daemon notices its binary changed and restarts itself.
+The Xcode project still works if Xcode is reinstalled.
+
 ### M10 — Settings window
 - Tabs: **Blocking** (an app picker from `/Applications` plus a list of website domains), **Schedules**, **Stats**, **General** (permissions status, reinstall the helper).
 - Blocklists move into the daemon's config so a non-root user can't edit them; the app reads and writes them over XPC.

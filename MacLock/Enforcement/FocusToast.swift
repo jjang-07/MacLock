@@ -1,30 +1,39 @@
 import AppKit
-import SwiftUI
 
 /// A small pill shown under the blocked clock, e.g. "23 min left — stay focused."
+///
+/// Plain AppKit on purpose. A SwiftUI hosting view in this panel crashed the app (AppKit's
+/// constraint-update loop check) when toasts were shown in quick succession, e.g. on a
+/// double-click, and a crash drops the clock overlay until the daemon relaunches the app.
 final class FocusToast {
     private var panel: NSPanel?
-    /// Created once and never allowed to resize its window: a hosting view that drives its
-    /// window's size can trip AppKit's constraint-update loop check and crash the app.
-    private let host: NSHostingView<ToastView> = {
-        let host = NSHostingView(rootView: ToastView(message: ""))
-        host.sizingOptions = []
-        return host
-    }()
+    private let label = NSTextField(labelWithString: "")
+    private let icon = NSImageView()
     private var hideTask: Task<Void, Never>?
+
+    private static let padding = NSEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
+    private static let iconSpacing: CGFloat = 6
 
     func show(_ message: String, below anchor: CGRect) {
         let panel = self.panel ?? makePanel()
         self.panel = panel
 
-        let view = ToastView(message: message)
-        host.rootView = view
-        // With sizingOptions = [] the hosting view reports a zero fitting size, so measure the
-        // content separately (a controller that isn't in any window can't trip the layout loop).
-        let size = NSHostingController(rootView: view).sizeThatFits(in: CGSize(width: 1000, height: 200))
-        // Right-aligned with the clock, just under the menu bar, kept on the anchor's screen.
+        label.stringValue = message
+        let textSize = label.fittingSize
+        let iconSize = CGSize(width: 14, height: 14)
+        let size = CGSize(
+            width: ceil(Self.padding.left + iconSize.width + Self.iconSpacing + textSize.width + Self.padding.right),
+            height: ceil(Self.padding.top + max(iconSize.height, textSize.height) + Self.padding.bottom)
+        )
+        // Right-aligned with the clock, just under the menu bar.
         let x = max(anchor.maxX - size.width - 4, anchor.minX - size.width)
-        panel.setFrame(CGRect(x: x, y: anchor.minY - size.height - 6, width: size.width, height: size.height), display: true)
+        panel.setFrame(CGRect(x: x, y: anchor.minY - size.height - 6, width: size.width, height: size.height), display: false)
+
+        // Manual frames only: no constraints, so no constraint passes to trip over.
+        icon.frame = CGRect(x: Self.padding.left, y: (size.height - iconSize.height) / 2, width: iconSize.width, height: iconSize.height)
+        label.frame = CGRect(x: icon.frame.maxX + Self.iconSpacing, y: (size.height - textSize.height) / 2,
+                             width: textSize.width, height: textSize.height)
+        panel.contentView?.layer?.cornerRadius = size.height / 2
 
         panel.alphaValue = 1
         panel.orderFrontRegardless()
@@ -53,23 +62,29 @@ final class FocusToast {
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = false
+        panel.hasShadow = true
         panel.ignoresMouseEvents = true
         panel.isReleasedWhenClosed = false
-        panel.contentView = host
+
+        let background = NSVisualEffectView()
+        background.material = .hudWindow
+        background.blendingMode = .behindWindow
+        background.state = .active
+        background.wantsLayer = true
+        background.layer?.masksToBounds = true
+        background.translatesAutoresizingMaskIntoConstraints = true
+        background.autoresizingMask = [.width, .height]
+
+        icon.image = NSImage(systemSymbolName: "lock.fill", accessibilityDescription: nil)
+        icon.symbolConfiguration = .init(pointSize: 12, weight: .semibold)
+        icon.contentTintColor = .labelColor
+        label.font = .systemFont(ofSize: NSFont.systemFontSize, weight: .medium)
+        label.textColor = .labelColor
+        for view in [icon, label] as [NSView] {
+            view.translatesAutoresizingMaskIntoConstraints = true
+            background.addSubview(view)
+        }
+        panel.contentView = background
         return panel
-    }
-}
-
-struct ToastView: View {
-    let message: String
-
-    var body: some View {
-        Label(message, systemImage: "lock.fill")
-            .font(.callout.weight(.medium))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .glassEffect(.regular, in: .capsule)
-            .padding(4)
     }
 }

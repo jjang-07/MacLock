@@ -33,6 +33,9 @@ final class NotificationCenterWatchdog: Enforcer {
         }
         attachObserver()
         startPolling()
+        // After a relaunch mid-session the panel may already be open, and no "window created"
+        // event will come for it. Watch closely for a moment instead of waiting for the slow poll.
+        startBurst()
     }
 
     func deactivate() {
